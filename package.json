@@ -3,7 +3,10 @@
     "version": "1.0.0",
     "private": true,
     "type": "module",
-    "description": "Agent skill for authoring PR-ready RSSHub routes, distilled from 1,987 merged route PRs",
+    "description": "Agent skill for authoring PR-ready RSSHub routes, distilled from 2,727 route PRs",
+    "engines": {
+        "node": ">=20.11"
+    },
     "scripts": {
         "fetch": "node tools/fetch-reviews.mjs --full",
         "analyze": "node tools/analyze.mjs",

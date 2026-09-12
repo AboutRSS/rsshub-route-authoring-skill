@@ -2,12 +2,21 @@
 name: rsshub-route-authoring-skill
 description: >-
   Author PR-ready RSSHub routes — namespace.ts, route handler, Radar rules and PR
-  description — that survive code review. Distilled from 1,987 merged route PRs. Use when
-  asked to write, fix or review an RSSHub route, add an RSS feed for a website via RSSHub,
+  description — that survive code review. Distilled from 2,727 route PRs. Use when asked
+  to write, fix or review an RSSHub route, add an RSS feed for a website via RSSHub,
   contribute a route to DIYgod/RSSHub, or when working with cheerio selectors,
   cache.tryGet, parseDate, Radar rules, or the RSSHub PR template. Trigger on RSSHub, RSS
   route, RSS feed for X, 给 X 做 RSS 订阅, namespace.ts, DataItem. Do not use for
   deploying RSSHub, debugging runtime errors, tuning cache/config, or non-RSSHub scraping.
+license: MIT
+compatibility: >-
+  Must run inside an RSSHub checkout, which requires Node.js and pnpm 10. An authenticated 
+  GitHub CLI (`gh`) is needed to fetch the auto-review rule list and to run the tooling 
+  under tools/. Run `npm i` once in this folder for the verification scripts under scripts/.
+allowed-tools: "Read Write Edit Glob Grep WebFetch Bash(git:*) Bash(node:*) Bash(npm:*) Bash(pnpm:*) Bash(gh:*)"
+metadata:
+  version: "1.0.0"
+  corpus: "2727 route PRs, collected 2026-09-11"
 ---
 
 # RSSHub route authoring

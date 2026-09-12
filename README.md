@@ -95,17 +95,60 @@ Answering that with a count instead of an opinion is most of what this skill tea
 
 ## Install
 
+This is a plain [Agent Skills](https://agentskills.io/specification) package: a folder with a
+`SKILL.md` at its root. Anything that implements that standard can load it. Clone it into the
+skills directory your agent reads, **keeping the repository name** — the spec requires the
+`name` in the frontmatter to match the directory name.
+
 ```bash
 git clone https://github.com/AboutRSS/rsshub-route-authoring-skill.git
 ```
 
-Then copy or symlink into your agent's skills directory, or install with your skills CLI:
+| Agent | Skills directory | Status |
+| --- | --- | --- |
+| CodeBuddy | `~/.codebuddy/skills/` | verified |
+| Antigravity | `~/.gemini/antigravity/skills/` | verified |
+| Claude Code | `~/.claude/skills/` | documented, not verified here |
+| Cursor | uses `.cursor/rules/*.mdc` — a different system | not applicable as-is |
 
-```bash
-npx skills add AboutRSS/rsshub-route-authoring-skill
-```
+On Windows the same paths are `C:\Users\<you>\.codebuddy\skills\` and
+`C:\Users\<you>\.gemini\antigravity\skills\`.
 
-If you fork this repository, replace the account name in the two commands above.
+Two things to know before it works:
+
+- **Run `npm i` inside the skill folder once.** Only `scripts/` needs it (cheerio,
+  iconv-lite); `references/` is plain Markdown.
+- **The skill operates on an RSSHub checkout**, so the workspace it runs in has to be one, and
+  `gh` has to be authenticated for rule fetching.
+
+Antigravity also has project-level *Workflow* files at `.agent/workflows/*.md` that can invoke
+a global skill; see its documentation if you want a slash command for this one.
+
+If you fork this repository, replace the account name in the clone command above.
+
+## Portability
+
+The package uses only standard Agent Skills fields — `name`, `description`, `license`,
+`compatibility`, `metadata`, plus `allowed-tools` (ignored by platforms that do not define it).
+There is no platform-specific configuration, no environment file and no installer script.
+
+**What limits portability is the environment, not the format:**
+
+| Requirement | Needed for | Without it |
+| --- | --- | --- |
+| An RSSHub checkout as the workspace | everything — routes are written into `lib/routes/`, and `AGENTS.md` is read from the repo root | the skill has nowhere to work |
+| Node.js | RSSHub itself, per its own `package.json` `engines` field | RSSHub will not start |
+| pnpm 10 | installing RSSHub's dependencies | `pnpm i` fails |
+| `gh`, authenticated | fetching `AGENTS.md` and `.github/prompts/pr_review_rules.md`, and everything under `tools/` | the auto-review rule list cannot be fetched |
+| `npm i` inside this folder | `scripts/verify-selectors.mjs` and `scripts/pre-submit-check.mjs` | the verification scripts cannot run |
+
+Everything in `references/` is plain Markdown and needs no setup on any platform — deliberately
+so, since that is where most of the value lives.
+
+`allowed-tools` is declared so platforms that support it can pre-authorise the small set of
+commands this skill needs: file reads and edits, page fetches, and `git` / `node` / `npm` /
+`pnpm` / `gh`. It has only been exercised on CodeBuddy and Antigravity. If it blocks something
+on your platform, delete the line — it is optional.
 
 ## Usage
 

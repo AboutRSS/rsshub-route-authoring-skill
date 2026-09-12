@@ -1,0 +1,11 @@
+# Keep this repository LF-only.
+#
+# references/engineering-traps.md tells contributors that RSSHub rejects CRLF — so this
+# repository should not ship CRLF itself. Without this file, a Windows clone with
+# core.autocrlf=true checks files out as CRLF, which is what happened on first publication.
+* text=auto eol=lf
+
+# Explicit, in case anyone adds assets later.
+*.png binary
+*.jpg binary
+*.ico binary
