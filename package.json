@@ -1,0 +1,18 @@
+{
+    "name": "rsshub-route-authoring-skill",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "description": "Agent skill for authoring PR-ready RSSHub routes, distilled from 1,987 merged route PRs",
+    "scripts": {
+        "fetch": "node tools/fetch-reviews.mjs --full",
+        "analyze": "node tools/analyze.mjs",
+        "verify": "node scripts/verify-selectors.mjs",
+        "check": "node scripts/pre-submit-check.mjs"
+    },
+    "devDependencies": {
+        "cheerio": "^1.0.0",
+        "iconv-lite": "^0.6.3"
+    },
+    "license": "MIT"
+}

@@ -1,0 +1,64 @@
+name: Review observation
+description: Report something a reviewer raised that this skill does not cover
+title: 'observation: '
+labels: ['observation']
+body:
+    - type: markdown
+      attributes:
+          value: |
+              Thanks for feeding real review experience back.
+
+              This records a **fact** — what a reviewer said — not a proposed rule. A maintainer
+              decides whether it becomes guidance, using the evidence threshold in
+              `CONTRIBUTING.md`. Keep quotes to 300 characters and include nothing private.
+    - type: input
+      id: pr
+      attributes:
+          label: PR link
+          description: The RSSHub PR this came from
+          placeholder: https://github.com/DIYgod/RSSHub/pull/00000
+      validations:
+          required: true
+    - type: input
+      id: rule
+      attributes:
+          label: Rule ID, if any
+          description: The number the reviewer or bot cited, or 'none'
+          placeholder: 'Rule 19'
+      validations:
+          required: false
+    - type: textarea
+      id: quote
+      attributes:
+          label: What the reviewer said
+          description: Quote, 300 characters or fewer
+      validations:
+          required: true
+    - type: dropdown
+      id: outcome
+      attributes:
+          label: Outcome
+          options:
+              - accepted — I changed the code
+              - rejected — I pushed back and it was dropped
+              - bot was wrong
+              - still open
+      validations:
+          required: true
+    - type: dropdown
+      id: coverage
+      attributes:
+          label: Is this already covered by the skill?
+          options:
+              - not covered
+              - partially covered
+              - contradicts the skill
+      validations:
+          required: true
+    - type: textarea
+      id: suggestion
+      attributes:
+          label: Suggested addition
+          description: One line is plenty
+      validations:
+          required: false

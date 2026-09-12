@@ -1,0 +1,12 @@
+node_modules/
+
+# Local backlog — a private scratchpad, intentionally not published.
+TODO.md
+
+# Raw mining output: large and regenerable.
+# Only the distilled exemplars under references/ are committed.
+tools/data/
+
+*.log
+.DS_Store
+Thumbs.db

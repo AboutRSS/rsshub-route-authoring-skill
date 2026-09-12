@@ -1,0 +1,49 @@
+name: Correction
+description: This skill states something that is wrong or outdated
+title: 'correction: '
+labels: ['correction']
+body:
+    - type: markdown
+      attributes:
+          value: |
+              Corrections take priority over new observations. If the guidance here confidently
+              states something false, that is worse than saying less — thank you for flagging it.
+    - type: input
+      id: where
+      attributes:
+          label: Where
+          description: File and section, e.g. anti-patterns.md §9
+          placeholder: 'anti-patterns.md §9'
+      validations:
+          required: true
+    - type: textarea
+      id: claim
+      attributes:
+          label: What the skill currently says
+      validations:
+          required: true
+    - type: textarea
+      id: reality
+      attributes:
+          label: What is actually true
+      validations:
+          required: true
+    - type: input
+      id: evidence
+      attributes:
+          label: Evidence
+          description: An official rule, an AGENTS.md line, a PR, or a count you re-ran
+          placeholder: 'AGENTS.md #21, or "re-ran npm run analyze"'
+      validations:
+          required: false
+    - type: dropdown
+      id: source
+      attributes:
+          label: How did you find this?
+          options:
+              - a reviewer or maintainer contradicted it
+              - the official rules / AGENTS.md say otherwise
+              - I re-ran the pipeline
+              - it is simply out of date
+      validations:
+          required: true

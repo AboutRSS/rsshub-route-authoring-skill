@@ -1,0 +1,115 @@
+{
+    "skill_name": "rsshub-route-authoring-skill",
+    "note": "Drawn from real merged and closed PRs. One case is a regression test from this skill's own development; the rest come from other contributors' PRs in the corpus. Three cases are deliberately adversarial: they check that the skill does not over-apply its own rules.",
+    "evals": [
+        {
+            "id": 1,
+            "name": "city-parameterised-ssr-route",
+            "prompt": "为 https://art.icity.ly/guangzhou/latest 写一个 RSSHub 路由，能提取展览名和链接，以可提交 PR 为标准。",
+            "expected_output": "A route under the existing lib/routes/icity namespace, path with :city and an optional :type, only the first page fetched, no hardcoded User-Agent, no pubDate (the site exposes no publish time), radar inline in Route['radar'] with the correct subdomain, and a PR description using the current template.",
+            "checks": [
+                "确认 lib/routes/icity 已存在并复用，未创建重复命名空间",
+                "未暴露 :page? 或任何分页参数",
+                "未硬编码 User-Agent",
+                "pubDate 未设置，且 PR 说明中解释了原因",
+                "所有防御性写法（.first()/.trim()）都有 verify-selectors 给出的计数支撑",
+                "事件时间（开展日期）未被当作 pubDate",
+                "文件为 LF 且无 BOM"
+            ],
+            "files": []
+        },
+        {
+            "id": 2,
+            "name": "site-already-has-an-official-feed",
+            "prompt": "帮我把 https://example-blog.com/ 做成 RSSHub 路由，它首页有个 <link rel=\"alternate\" type=\"application/rss+xml\"> 指向 /index.xml，内容和列表页一样。",
+            "expected_output": "Flags that the site already provides an equivalent official feed: the route would add no unique value and would always lag behind due to RSSHub caching. Explains this before writing code, and only proceeds if the contributor wants something the feed lacks (full text, a section with no feed, filtering).",
+            "checks": [
+                "先检查站点是否已有官方 feed 或 API",
+                "向用户说明重复内容 + 缓存滞后的问题",
+                "未直接交付一个与被拒理由冲突的路由",
+                "若继续，能说明该路由相对官方 feed 的独特价值"
+            ],
+            "files": []
+        },
+        {
+            "id": 3,
+            "name": "first-is-actually-justified",
+            "prompt": "写一个 RSSHub 路由，列表里每个条目有两个指向同一文章的 a 标签（封面图和标题），请提取标题和链接。",
+            "expected_output": "Keeps .first() (or narrows the selector) because verification reports more than one match per item, and can defend it with a count and sample markup instead of removing it reflexively.",
+            "checks": [
+                "运行了 verify-selectors 并记录每条目匹配数",
+                "因计数 > 1 保留 .first() 或改用更精确选择器",
+                "未盲目删除防御性代码",
+                "被质疑时能用计数和样例 HTML 回答"
+            ],
+            "files": []
+        },
+        {
+            "id": 4,
+            "name": "resist-pagination",
+            "prompt": "这个网站列表有 ?page=1..20 的分页，帮我做一个能翻页的 RSSHub 路由，让用户能订阅第 5 页。",
+            "expected_output": "Refuses to expose a pagination parameter, explains that an RSS feed requests the first page only, and delivers a route that fetches page one.",
+            "checks": [
+                "路由 path 中不含 :page? 或 pageSize 参数",
+                "向用户解释了为何不提供分页",
+                "只请求第一页"
+            ],
+            "files": []
+        },
+        {
+            "id": 5,
+            "name": "resist-custom-limit",
+            "prompt": "帮我加个 limit 参数，用户传多少就返回多少条，另外默认只返回 5 条。",
+            "expected_output": "Explains that RSSHub already applies a built-in `limit` common parameter to data.item, so neither a custom `limit` query parameter nor a hardcoded `.slice(0, 5)` is needed. Returns all fetched items.",
+            "checks": [
+                "未实现自定义 limit 参数",
+                "未使用 .slice(0, N) 之类的硬编码截断",
+                "向用户说明内置的 limit 通用参数",
+                "未在 parameters 里声明 limit"
+            ],
+            "files": []
+        },
+        {
+            "id": 6,
+            "name": "json-api-route-with-options",
+            "prompt": "这个站点有公开的 JSON 接口，分类有 news / blog / release 三种，默认 news。帮我写 RSSHub 路由。",
+            "expected_output": "Uses ofetch against the JSON API, declares the parameter with a description, default and options array, maps API fields to DataItem with parseDate on the timestamp, caches the processed result rather than the raw payload, and sets exactly one category.",
+            "checks": [
+                "优先使用 API 而非 HTML",
+                "parameters 使用对象形式，含 default 与 options",
+                "日期经 parseDate 解析，必要时用 timezone 归一化",
+                "cache.tryGet 缓存的是加工后的结果而非原始响应",
+                "categories 只有一个",
+                "example 为可用真实路径"
+            ],
+            "files": []
+        },
+        {
+            "id": 7,
+            "name": "do-not-reach-for-puppeteer",
+            "prompt": "这个站点直接请求返回 403，帮我用 Puppeteer 写个 RSSHub 路由，每个条目开一个浏览器去抓详情。",
+            "expected_output": "First tries a browser-like request through RSSHub's own layer; if a browser is genuinely required, uses the shared puppeteer helper with a single browser session and newPage per item — never one browser per item — and sets requirePuppeteer truthfully.",
+            "checks": [
+                "先尝试 ofetch / 默认 UA，未直接跳到浏览器",
+                "确需浏览器时使用 @/utils/puppeteer，未重复造轮子",
+                "单个 browser 会话 + newPage，未每条目开会话",
+                "限制了 allowed request types，未用固定 setTimeout",
+                "features.requirePuppeteer 与实际实现一致"
+            ],
+            "files": []
+        },
+        {
+            "id": 8,
+            "name": "fix-route-without-scope-creep",
+            "prompt": "某个已合并的 RSSHub 路由因为站点改版挂了，帮我修一下。顺手把同命名空间其它文件的格式也统一了吧。",
+            "expected_output": "Fixes the broken route only, and declines to reformat or rename unrelated files in the same PR, explaining that out-of-scope changes are flagged as a rule violation.",
+            "checks": [
+                "只改动与目标路由相关的文件",
+                "未顺带格式化、重命名或重构无关文件",
+                "向用户解释了 PR 范围要求",
+                "提交信息使用 fix(route): 前缀"
+            ],
+            "files": []
+        }
+    ]
+}
