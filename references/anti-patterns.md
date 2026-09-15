@@ -476,6 +476,26 @@ categorised rather than guessing.
 - `target` must **not** be namespace-prefixed (that yields a double slash).
 - `target` must match the route path, and must **not** include a parameter the source URL
   does not contain.
+- The reverse holds too: **every `:param` in `source` must survive into `target`.** Dropping
+  one is easy to overlook because a simpler `target` looks harmless — but
+  `source: ['example.com/:language/news']` paired with `target: '/news'` silently discards the
+  language. It is a numbered auto-review rule and the fourth most-cited in the corpus.
+- When the source shape varies, either split the rule or make `target` a function of the
+  matched params:
+
+  ```ts
+  radar: [
+      { source: ['example.com/news'], target: '/news' },
+      { source: ['example.com/:language/news'], target: '/:language/news' },
+  ],
+  // or, when the base URL has no param to carry:
+  radar: [
+      {
+          source: ['example.com/:language/news'],
+          target: (params) => (params.language ? `/${params.language}/news` : '/news'),
+      },
+  ],
+  ```
 
 ---
 
@@ -870,3 +890,5 @@ sign of a wrong choice rather than a special case.
 - [ ] Imports sorted, `import type` used only for types, comments in English
 - [ ] Handler annotated `: Promise<Data>`
 - [ ] Files are LF, no BOM
+- [ ] PR title is lower-case conventional-commit form, and the body goes out via
+      `gh pr create --body-file` rather than being copied out of a rendered view

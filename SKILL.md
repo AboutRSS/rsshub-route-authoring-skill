@@ -152,9 +152,25 @@ Then run `scripts/pre-submit-check.mjs`, and confirm the feed renders at
 
 ### 8. Submit
 
-Commit as `feat(route): …`, push, and open the PR. **Before using `references/pr-template.md`,
-compare it with the template GitHub injects into the new PR form** — the official template
-changes over time, and the injected one is authoritative. See `references/pr-template.md`.
+Commit as `feat(route): …`, push, and open the PR by passing the body as a file:
+
+```bash
+gh pr create --title "feat(route): add <site> <what> route" --body-file /tmp/pr-body.md
+```
+
+Never let the description travel through a rendered view — the template contains a `routes`
+fence that collides with any fence wrapped around it, and the result is broken markdown. The
+title is checked by CI and must be lower-case conventional-commit form; `Feat:` and
+`feat:add …` both fail it. Check both before opening the PR:
+
+```bash
+node scripts/pre-submit-check.mjs --title "feat(route): add <site> <what> route"
+```
+
+**Before using `references/pr-template.md`, compare it with the template GitHub injects into
+the new PR form** — the official template changes over time, and the injected one is
+authoritative. See `references/pr-template.md` for the title rules and the four-backtick
+fallback when a human has to copy the body by hand.
 
 Then read `references/review-response.md`, which covers what CI checks, how to reply, and how
 to clean up after merge.

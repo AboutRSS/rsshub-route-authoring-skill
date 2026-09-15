@@ -34,6 +34,51 @@
 
     <what the route does, how it fetches, what the description contains, where pubDate comes from>
 
+## Delivering it
+
+**Do not hand-copy the description out of a rendered view.** The template contains a fenced
+block tagged `routes`. If the whole description is also wrapped in a three-backtick fence, that
+inner fence terminates the outer one: the `routes` block breaks, the checklist links lose their
+URLs, and nested list indentation collapses from four spaces to one. It looks like a formatting
+accident; it is mechanical, and it has already happened once.
+
+Write the body to a file and let `gh` read it:
+
+```bash
+gh pr create --title "feat(route): add <site> <what> route" --body-file /tmp/pr-body.md
+# existing PR
+gh pr edit <number> --body-file /tmp/pr-body.md
+```
+
+`gh` sends those bytes verbatim, so nothing can be mangled on the way. Only if a human has to
+copy it by hand: the outer fence must be **four** backticks tagged `text`, never three.
+
+````text
+## Example for the Proposed Route(s) / 路由地址示例
+
+```routes
+/example/path
+```
+
+## New RSS Route Checklist / 新 RSS 路由检查表
+…
+````
+
+### PR title
+
+Validated by `amannn/action-semantic-pull-request`. RSSHub configures only `ignoreLabels` and
+`wip`, so the action defaults apply — and the summary is shorter than it looks:
+
+| Rule | Enforced? |
+| --- | --- |
+| type is lower-case and from the Conventional Commits set | **yes** — each type is matched as `^type$` with no case-insensitive flag, so `Feat:` fails and `feat:` passes |
+| a space after the colon | **yes** — the header pattern is `^(\w*)(?:\(([\w$.\-*/ ]*)\))?: (.*)$` |
+| a scope | no — `requireScope` is not set |
+| a lower-case subject | no — `subjectPattern` is not set |
+
+So a new route is `feat(route): add <site> <what> route`, all lower-case. `Feat:` and
+`feat:add …` both fail the check — only the first is a case problem, the second a spacing one.
+
 ## How to fill it in
 
 ### `routes` block

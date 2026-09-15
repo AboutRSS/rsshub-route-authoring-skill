@@ -5,6 +5,10 @@
  * Usage:
  *   node scripts/pre-submit-check.mjs lib/routes/<namespace>
  *   node scripts/pre-submit-check.mjs lib/routes/<namespace>/<route>.ts
+ *   node scripts/pre-submit-check.mjs --title "feat(route): add example route"
+ *
+ * The path arguments are optional, so --title can be checked on its own right before the PR
+ * is opened.
  *
  * Exit code 1 when any FAIL is reported. WARN items need a human decision — several of them
  * are only wrong when they lack evidence, which is exactly what scripts/verify-selectors.mjs
@@ -44,8 +48,50 @@ function add(file, severity, message) {
     results.push({ file, severity, message });
 }
 
+/**
+ * The check the PR bot runs (amannn/action-semantic-pull-request). RSSHub configures only
+ * `ignoreLabels` and `wip`, so the action defaults apply: each type is matched as `^type$`
+ * with no case-insensitive flag, and the header pattern requires a space after the colon.
+ * Scope and subject case are deliberately not enforced, because RSSHub does not enforce them.
+ */
+const CONVENTIONAL_TYPES = ['build', 'chore', 'ci', 'docs', 'feat', 'fix', 'perf', 'refactor', 'revert', 'style', 'test'];
+
+const argv = process.argv.slice(2);
+const titleIndex = argv.indexOf('--title');
+const title = titleIndex === -1 ? undefined : argv[titleIndex + 1];
+const pathArgs = argv.filter((arg, i) => !(titleIndex !== -1 && i === titleIndex + 1) && !arg.startsWith('--'));
+
+if (titleIndex !== -1 && (title === undefined || title.startsWith('--'))) {
+    console.error('--title needs a value, e.g. --title "feat(route): add example route"');
+    process.exit(2);
+}
+
+if (title !== undefined) {
+    const parsed = /^([A-Za-z]+)(?:\(([^)]*)\))?!?: (.+)$/.exec(title);
+    if (!parsed) {
+        add('<title>', 'FAIL', `"${title}" is not <type>(<scope>): <subject> — a space is required after the colon`);
+    } else {
+        const [, type, scope] = parsed;
+        if (!CONVENTIONAL_TYPES.includes(type)) {
+            add(
+                '<title>',
+                'FAIL',
+                `type "${type}" is rejected — types are matched case-sensitively, so it must be lower-case and one of: ${CONVENTIONAL_TYPES.join(', ')}. "Feat:" fails, "feat:" passes`
+            );
+        } else if (scope === undefined) {
+            add('<title>', 'WARN', 'no scope — the convention for a new route is `feat(route): add <site> <what> route`');
+        }
+    }
+}
+
 function collect(target) {
-    const st = statSync(target);
+    let st;
+    try {
+        st = statSync(target);
+    } catch {
+        add(target, 'FAIL', 'path does not exist');
+        return [];
+    }
     if (st.isFile()) {
         return [target];
     }
@@ -55,14 +101,14 @@ function collect(target) {
     });
 }
 
-const allFiles = process.argv.slice(2).flatMap(collect).filter((f) => /\.(ts|tsx)$/.test(f));
-const files = gitChanged(allFiles);
+const allFiles = pathArgs.flatMap(collect).filter((f) => /\.(ts|tsx)$/.test(f));
+const files = allFiles.length > 0 ? gitChanged(allFiles) : [];
 
-if (files.length === 0) {
+if (files.length === 0 && title === undefined && results.length === 0) {
     console.log(`No changed TypeScript files (${allFiles.length} scanned, all unmodified vs HEAD).`);
     process.exit(0);
 }
-if (files.length < allFiles.length) {
+if (allFiles.length > 0 && files.length < allFiles.length) {
     console.log(`(scoped to ${files.length} of ${allFiles.length} file(s) that differ from HEAD)`);
     console.log('');
 }
